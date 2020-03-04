@@ -1,8 +1,8 @@
-package com.zzf.community.provider;
+package com.zzf.learn.community.provider;
 
 import com.alibaba.fastjson.JSON;
-import com.zzf.community.dto.AccessTokenDTO;
-import com.zzf.community.dto.GithubUser;
+import com.zzf.learn.community.dto.AccessTokenDTO;
+import com.zzf.learn.community.dto.GithubUserDTO;
 import okhttp3.*;
 import org.springframework.stereotype.Component;
 
@@ -35,19 +35,20 @@ public class GithubProvider {
         return null;
     }
 
-    public GithubUser getUser(String accessToken){
+    public GithubUserDTO getUser(String accessToken){
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
                 .url("https://api.github.com/user?access_token="+accessToken)
                 .build();
-
         try {
             Response response = client.newCall(request).execute();
             String string = response.body().string();
-            GithubUser githubUser = JSON.parseObject(string, GithubUser.class);//parseObject自动转化为java类对象
-            return githubUser;
+            GithubUserDTO githubUserDTO = JSON.parseObject(string, GithubUserDTO.class);//parseObject自动转化为java类对象
+            return githubUserDTO;
         }
-        catch (IOException e){ }
+        catch (IOException e){
+
+        }
         return null;
     }
 }

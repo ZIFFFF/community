@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzf.learn.community.mapper.QuestionMapper">
+
+    <select id="questionList" resultType="com.zzf.learn.community.model.Question">
+        <!--
+          问题列表
+        -->
+        select * from question limit #{offset}, #{size}
+    </select>
+
+    <select id="count" resultType="java.lang.Integer">
+        <!--
+          个人问题数
+        -->
+        select count(1) from question where creator = #{userId}
+    </select>
+
+    <select id="selectByUserId" resultType="com.zzf.learn.community.model.Question">
+        <!--
+          我的问题
+        -->
+        select * from question where creator = #{userId} limit #{offset}, #{size}
+    </select>
+
+    <select id="selectById" resultType="com.zzf.learn.community.model.Question">
+        <!--
+          获取问题详情
+        -->
+        select * from question where id = #{id}
+    </select>
+
+    <select id="counts" resultType="java.lang.Integer">
+        <!--
+          获取总问题数
+        -->
+        select count(1) from question
+    </select>
+
+
+    <insert id="insertQuestion" parameterType="com.zzf.learn.community.model.Question">
+        <!--
+          发布问题
+        -->
+        insert into question (title,description,create_time,modified_time,creator,tag) values (#{title},#{description},#{createTime},#{modifiedTime},#{creator},#{tag})
+  </insert>
+
+    <update id="updateQuestion" parameterType="com.zzf.learn.community.model.Question">
+    <!--
+        更新问题
+    -->
+    update question set title = #{title}, description = #{description}, tag = #{tag}, modified_time = #{modifiedTime} where id = #{id}
+  </update>
+
+    <update id="incView" parameterType="com.zzf.learn.community.model.Question">
+    <!--
+        更新阅读数
+    -->
+    update question set view_count = view_count + #{viewCount} where id = #{id}
+  </update>
+
+    <update id="incComment" parameterType="com.zzf.learn.community.model.Question">
+    <!--
+        更新评论数
+    -->
+    update question set comment_count = comment_count + #{comentCount} where id = #{id}
+    </update>
+
+</mapper>
