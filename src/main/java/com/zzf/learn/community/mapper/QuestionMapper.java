@@ -32,6 +32,7 @@ public interface QuestionMapper extends BaseMapper<Question> {
 
     int incView(Question question);
 
-    int incComment(Question question);
+    int incCommentCount(Question question);
 
+    List<Question> selectByRelated(Question question);
 }

@@ -1,7 +1,7 @@
 package com.zzf.learn.community.controller;
 
 
-import com.sun.org.apache.bcel.internal.generic.ARETURN;
+import com.zzf.learn.community.dto.CommentCreateDTO;
 import com.zzf.learn.community.dto.CommentDTO;
 import com.zzf.learn.community.dto.ResultDTO;
 import com.zzf.learn.community.enums.CommentTypeEnum;
@@ -34,29 +34,27 @@ public class CommentController {
 
     @ResponseBody
     @RequestMapping(value = "/comment", method = RequestMethod.POST)
-    public Object post(@RequestBody CommentDTO commentDTO,
+    public Object post(@RequestBody CommentCreateDTO commentCreateDTO,
                           HttpServletRequest request){
         Users user = (Users)request.getSession().getAttribute("user");
         if (user == null){
             return ResultDTO.errorOf(CustomizeErrorCode.NO_LOGIN);
         }
-
         Comment comment = new Comment();
-        comment.setParentId(commentDTO.getParentId());
-        comment.setContent(commentDTO.getContent());
-        comment.setType(commentDTO.getType());
+        comment.setParentId(commentCreateDTO.getParentId());
+        comment.setContent(commentCreateDTO.getContent());
+        comment.setType(commentCreateDTO.getType());
         comment.setCreateTime(System.currentTimeMillis());
         comment.setModifiedTime(comment.getCreateTime());
-        comment.setCommentator(24L);
-        commentService.insert(comment);
-        Map<Object, Object> objectObjectMap = new HashMap<>();
-        objectObjectMap.put("message", "成功");
+        comment.setCommentator(user.getId());
+        comment.setLikeCount(0L);
+        commentService.insert(comment, user);
         return ResultDTO.okOf();
     }
 
     @ResponseBody
     @RequestMapping(value = "/comment/{id}", method = RequestMethod.GET)
-    public ResultDTO<List<CommentDTO>> comments(@PathVariable(name = "id") Long id){
+    public ResultDTO<List<CommentCreateDTO>> comments(@PathVariable(name = "id") Long id){
         List<CommentDTO> commentDTOS = commentService.listByTargetId(id, CommentTypeEnum.COMMENT);
         return ResultDTO.okOf(commentDTOS);
     }

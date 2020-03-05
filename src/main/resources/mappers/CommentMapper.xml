@@ -2,9 +2,21 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zzf.learn.community.mapper.CommentMapper">
 
+    <insert id="insertComment" parameterType="com.zzf.learn.community.model.Comment">
+        insert into comment (parent_id, type, commentator, create_time, modified_time, content, like_count, comment_count) values (#{parentId}, #{type}, #{commentator}, #{createTime}, #{modifiedTime}, #{content}, 0, 0)
+
+    </insert>
+
+    <update id="incCommentCount" parameterType="com.zzf.learn.community.model.Comment">
+        update comment
+        set comment_count = comment_count + #{commentCount}
+        where id = #{id}
+    </update>
+
     <select id="selectByIdAndType" resultType="com.zzf.learn.community.model.Comment">
         select * from comment
-        where id = #{id} and type = #{type}
+        where parent_id = #{id} and type = #{type}
+        order by create_time desc
     </select>
 
 </mapper>

@@ -1,5 +1,6 @@
 package com.zzf.learn.community.service;
 
+import com.zzf.learn.community.dto.CommentCreateDTO;
 import com.zzf.learn.community.dto.CommentDTO;
 import com.zzf.learn.community.enums.CommentTypeEnum;
 import com.zzf.learn.community.exception.CustomizeErrorCode;
@@ -10,7 +11,6 @@ import com.zzf.learn.community.mapper.UsersMapper;
 import com.zzf.learn.community.model.Comment;
 import com.zzf.learn.community.model.Question;
 import com.zzf.learn.community.model.Users;
-import org.apache.catalina.User;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author 郑梓锋
@@ -44,37 +44,52 @@ public class CommentService {
     private UsersMapper usersMapper;
 
     @Transactional  //事务注解 以下均执行事务
-    public void insert(Comment comment) {
-        if (comment.getParentId() == null || comment.getParentId() == 0){
+    public void insert(Comment comment, Users commentator) {
+        if (comment.getParentId() == null || comment.getParentId() == 0) {
             throw new CustomizeException(CustomizeErrorCode.TARGET_PARAM_NO_FIND);
         }
 
-        if (comment.getType() == null || CommentTypeEnum.isExist(comment.getType())){
+        if (comment.getType() == null || !CommentTypeEnum.isExist(comment.getType())) {
             throw new CustomizeException(CustomizeErrorCode.TYPE_PARAM_NO_FIND);
         }
 
-        if (comment.getType() == CommentTypeEnum.COMMENT.getType()){
+        if (comment.getType() == CommentTypeEnum.COMMENT.getType()) {
             //回复评论
             Comment dbComment = commentMapper.selectById(comment.getParentId());
-            if (dbComment == null){
+            if (dbComment == null) {
                 throw new CustomizeException(CustomizeErrorCode.COMMENT_NO_FIND);
             }
-            commentMapper.insert(comment);
-        }else{
+
             //回复问题
-            Question question = questionMapper.selectById(comment.getParentId());
-            if (question == null){
+            Question question = questionMapper.selectById(dbComment.getParentId());
+            if (question == null) {
                 throw new CustomizeException(CustomizeErrorCode.QUESTION_NO_FIND);
             }
+
             commentMapper.insert(comment);
+
+            //增加评论数量
+            Comment parentComment = new Comment();
+            parentComment.setId(comment.getParentId());
+            parentComment.setCommentCount(1);
+            commentMapper.incCommentCount(parentComment);
+
+        } else {
+            //回复问题
+            Question question = questionMapper.selectById(comment.getParentId());
+            if (question == null) {
+                throw new CustomizeException(CustomizeErrorCode.QUESTION_NO_FIND);
+            }
+            comment.setCommentCount(0);
+            commentMapper.insertComment(comment);
             question.setCommentCount(1);
-            questionMapper.incComment(question);
+            questionMapper.incCommentCount(question);
         }
     }
 
     public List<CommentDTO> listByTargetId(Long id, CommentTypeEnum type) {
         List<Comment> comments = commentMapper.selectByIdAndType(id, type.getType());
-        if (comments.size() == 0){
+        if (comments.size() == 0) {
             return new ArrayList<>();
         }
         //获取去重的评论人
@@ -88,7 +103,7 @@ public class CommentService {
 
         //转换 comment 为 commentDTO
         List<CommentDTO> commentDTOS = comments.stream().map(comment -> {
-           CommentDTO commentDTO = new CommentDTO();
+            CommentDTO commentDTO = new CommentDTO();
             BeanUtils.copyProperties(comment, commentDTO);
             commentDTO.setUser(userMap.get(comment.getCommentator()));
             return commentDTO;

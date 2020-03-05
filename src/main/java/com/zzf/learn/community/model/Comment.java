@@ -21,6 +21,8 @@ public class Comment implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private Long id;
+
     /**
      * 父类id
      */
@@ -56,5 +58,9 @@ public class Comment implements Serializable {
      */
     private Long modifiedTime;
 
+    /**
+     * 回复评论数
+     * */
+    private Integer commentCount;
 
 }

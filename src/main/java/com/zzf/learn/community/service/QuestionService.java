@@ -10,14 +10,16 @@ import com.zzf.learn.community.model.Question;
 import com.zzf.learn.community.model.Users;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-public class QuestionService
-{
+public class QuestionService {
 
     @Resource
     private QuestionMapper questionMapper;
@@ -30,15 +32,15 @@ public class QuestionService
         Integer totalCount = questionMapper.counts();
         Integer total_page;
         //求真实页数
-        if (totalCount % size == 0){
+        if (totalCount % size == 0) {
             total_page = totalCount / size;
-        }else {
+        } else {
             total_page = totalCount / size + 1;
         }
-        if (page > total_page){
+        if (page > total_page) {
             page = total_page;
         }
-        if (page < 1){
+        if (page < 1) {
             page = 1;
         }
         questionPageDTO.setPage(total_page, page);
@@ -46,7 +48,7 @@ public class QuestionService
 
         List<Question> questions = questionMapper.questionList(offset, size);
         List<QuestionDTO> questionDTOList = new ArrayList<>();
-        for (Question question : questions){
+        for (Question question : questions) {
             Users user = userMapper.findById(question.getCreator());
             QuestionDTO questionDTO = new QuestionDTO();
             BeanUtils.copyProperties(question, questionDTO);
@@ -62,15 +64,15 @@ public class QuestionService
         Integer totalCount = questionMapper.count(user_id);
         Integer total_page;
         //求真实页数
-        if (totalCount % size == 0){
+        if (totalCount % size == 0) {
             total_page = totalCount / size;
-        }else {
+        } else {
             total_page = totalCount / size + 1;
         }
-        if (page > total_page){
+        if (page > total_page) {
             page = total_page;
         }
-        if (page < 1){
+        if (page < 1) {
             page = 1;
         }
 
@@ -79,7 +81,7 @@ public class QuestionService
 
         List<Question> questions = questionMapper.selectByUserId(user_id, offset, size);
         List<QuestionDTO> questionDTOList = new ArrayList<>();
-        for (Question question : questions){
+        for (Question question : questions) {
             Users user = userMapper.findById(question.getCreator());
             QuestionDTO questionDTO = new QuestionDTO();
             BeanUtils.copyProperties(question, questionDTO);
@@ -90,9 +92,9 @@ public class QuestionService
         return questionPageDTO;
     }
 
-    public QuestionDTO getById(Long id){
+    public QuestionDTO getById(Long id) {
         Question question = questionMapper.selectById(id);
-        if (question == null){
+        if (question == null) {
             throw new CustomizeException(CustomizeErrorCode.QUESTION_NO_FIND);
         }
         QuestionDTO questionDTO = new QuestionDTO();
@@ -102,13 +104,13 @@ public class QuestionService
         return questionDTO;
     }
 
-    public void createOrUpdate(Question question){
-        if (question.getId() == null){
+    public void createOrUpdate(Question question) {
+        if (question.getId() == null) {
             questionMapper.insertQuestion(question);
-        }else{
+        } else {
             question.setModifiedTime(question.getCreateTime());
             int updated = questionMapper.updateQuestion(question);
-            if (updated != 1){
+            if (updated != 1) {
                 throw new CustomizeException(CustomizeErrorCode.QUESTION_NO_FIND);
             }
         }
@@ -119,5 +121,28 @@ public class QuestionService
         question.setId(id);
         question.setViewCount(1);
         questionMapper.incView(question);
+    }
+
+    public List<QuestionDTO> listByRelated(QuestionDTO queryDTO) {
+        if (StringUtils.isBlank(queryDTO.getTag())) {
+            return new ArrayList<>();
+        }
+        String[] tags = StringUtils.split(queryDTO.getTag(), "[,\\，]");
+        String regexpTag = Arrays
+                .stream(tags)
+                .filter(StringUtils::isNotBlank)
+                .map(t -> t.replace("+", "").replace("+", "").replace("?", ""))
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.joining("|"));
+        Question question = new Question();
+        question.setId(queryDTO.getId());
+        question.setTag(regexpTag);
+        List<Question> questions = questionMapper.selectByRelated(question);
+        List<QuestionDTO> questionDTOS = questions.stream().map(q -> {
+            QuestionDTO questionDTO = new QuestionDTO();
+            BeanUtils.copyProperties(q, questionDTO);
+            return questionDTO;
+        }).collect(Collectors.toList());
+        return questionDTOS;
     }
 }

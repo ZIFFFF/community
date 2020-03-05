@@ -16,7 +16,10 @@ import java.util.List;
  */
 public interface CommentMapper extends BaseMapper<Comment> {
 
+    void insertComment(Comment comment);
 
     List<Comment> selectByIdAndType(Long id, Integer type);
+
+    void incCommentCount(Comment parentComment);
 
 }

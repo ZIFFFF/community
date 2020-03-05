@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 public class CommentDTO {
 
+    private Long id;
     private Long parentId;
     private String content;
     private Integer type;
@@ -15,4 +16,5 @@ public class CommentDTO {
     private Long likeCount;
     private Integer commentCount;
     private Users user;
+
 }

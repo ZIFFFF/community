@@ -6,7 +6,9 @@
         <!--
           问题列表
         -->
-        select * from question limit #{offset}, #{size}
+        select * from question
+        order by create_time desc
+        limit #{offset}, #{size}
     </select>
 
     <select id="count" resultType="java.lang.Integer">
@@ -20,7 +22,9 @@
         <!--
           我的问题
         -->
-        select * from question where creator = #{userId} limit #{offset}, #{size}
+        select * from question where creator = #{userId}
+        order by create_time desc
+        limit #{offset}, #{size}
     </select>
 
     <select id="selectById" resultType="com.zzf.learn.community.model.Question">
@@ -35,6 +39,19 @@
           获取总问题数
         -->
         select count(1) from question
+    </select>
+
+    <select id="selectByRelated" parameterType="com.zzf.learn.community.model.Question" resultType="com.zzf.learn.community.model.Question">
+        select * from question
+        <where>
+            <if test="id != null">
+                and id != #{id}
+            </if>
+            <if test="tag != null and tag != ''">
+                and tag regexp #{tag}
+            </if>
+        </where>
+        order by create_time desc limit 20
     </select>
 
 
@@ -59,11 +76,11 @@
     update question set view_count = view_count + #{viewCount} where id = #{id}
   </update>
 
-    <update id="incComment" parameterType="com.zzf.learn.community.model.Question">
+    <update id="incCommentCount" parameterType="com.zzf.learn.community.model.Question">
     <!--
         更新评论数
     -->
-    update question set comment_count = comment_count + #{comentCount} where id = #{id}
+    update question set comment_count = comment_count + #{commentCount} where id = #{id}
     </update>
 
 </mapper>
