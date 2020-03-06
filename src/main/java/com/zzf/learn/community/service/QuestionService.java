@@ -1,6 +1,6 @@
 package com.zzf.learn.community.service;
 
-import com.zzf.learn.community.dto.QuestionPageDTO;
+import com.zzf.learn.community.dto.PaginationDTO;
 import com.zzf.learn.community.dto.QuestionDTO;
 import com.zzf.learn.community.exception.CustomizeErrorCode;
 import com.zzf.learn.community.exception.CustomizeException;
@@ -27,8 +27,8 @@ public class QuestionService {
     @Resource
     private UsersMapper userMapper;
 
-    public QuestionPageDTO list(Integer page, Integer size) {
-        QuestionPageDTO questionPageDTO = new QuestionPageDTO();
+    public PaginationDTO list(Integer page, Integer size) {
+        PaginationDTO paginationDTO = new PaginationDTO();
         Integer totalCount = questionMapper.counts();
         Integer total_page;
         //求真实页数
@@ -43,7 +43,7 @@ public class QuestionService {
         if (page < 1) {
             page = 1;
         }
-        questionPageDTO.setPage(total_page, page);
+        paginationDTO.setPage(total_page, page);
         Integer offset = size * (page - 1);
 
         List<Question> questions = questionMapper.questionList(offset, size);
@@ -55,12 +55,12 @@ public class QuestionService {
             questionDTO.setUser(user);
             questionDTOList.add(questionDTO);
         }
-        questionPageDTO.setQuestions(questionDTOList);
-        return questionPageDTO;
+        paginationDTO.setData(questionDTOList);
+        return paginationDTO;
     }
 
-    public QuestionPageDTO list(Long user_id, Integer page, Integer size) {
-        QuestionPageDTO questionPageDTO = new QuestionPageDTO();
+    public PaginationDTO list(Long user_id, Integer page, Integer size) {
+        PaginationDTO paginationDTO = new PaginationDTO();
         Integer totalCount = questionMapper.count(user_id);
         Integer total_page;
         //求真实页数
@@ -76,7 +76,7 @@ public class QuestionService {
             page = 1;
         }
 
-        questionPageDTO.setPage(total_page, page);
+        paginationDTO.setPage(total_page, page);
         Integer offset = size * (page - 1);
 
         List<Question> questions = questionMapper.selectByUserId(user_id, offset, size);
@@ -88,8 +88,8 @@ public class QuestionService {
             questionDTO.setUser(user);
             questionDTOList.add(questionDTO);
         }
-        questionPageDTO.setQuestions(questionDTOList);
-        return questionPageDTO;
+        paginationDTO.setData(questionDTOList);
+        return paginationDTO;
     }
 
     public QuestionDTO getById(Long id) {

@@ -1,14 +1,17 @@
 package com.zzf.learn.community.service;
 
-import com.zzf.learn.community.dto.CommentCreateDTO;
 import com.zzf.learn.community.dto.CommentDTO;
 import com.zzf.learn.community.enums.CommentTypeEnum;
+import com.zzf.learn.community.enums.NotificationStatusEnum;
+import com.zzf.learn.community.enums.NotificationTypeEnum;
 import com.zzf.learn.community.exception.CustomizeErrorCode;
 import com.zzf.learn.community.exception.CustomizeException;
 import com.zzf.learn.community.mapper.CommentMapper;
+import com.zzf.learn.community.mapper.NotificationMapper;
 import com.zzf.learn.community.mapper.QuestionMapper;
 import com.zzf.learn.community.mapper.UsersMapper;
 import com.zzf.learn.community.model.Comment;
+import com.zzf.learn.community.model.Notification;
 import com.zzf.learn.community.model.Question;
 import com.zzf.learn.community.model.Users;
 import org.springframework.beans.BeanUtils;
@@ -43,6 +46,9 @@ public class CommentService {
     @Autowired
     private UsersMapper usersMapper;
 
+    @Autowired
+    private NotificationMapper notificationMapper;
+
     @Transactional  //事务注解 以下均执行事务
     public void insert(Comment comment, Users commentator) {
         if (comment.getParentId() == null || comment.getParentId() == 0) {
@@ -74,6 +80,10 @@ public class CommentService {
             parentComment.setCommentCount(1);
             commentMapper.incCommentCount(parentComment);
 
+            // 创建通知
+            createNotify(comment, dbComment.getCommentator(), commentator.getName(),
+                    question.getTitle(), NotificationTypeEnum.REPLY_COMMENT, question.getId());
+
         } else {
             //回复问题
             Question question = questionMapper.selectById(comment.getParentId());
@@ -84,6 +94,10 @@ public class CommentService {
             commentMapper.insertComment(comment);
             question.setCommentCount(1);
             questionMapper.incCommentCount(question);
+
+            // 创建通知
+            createNotify(comment, question.getCreator(), commentator.getName(),
+                    question.getTitle(), NotificationTypeEnum.REPLY_QUESTION, question.getId());
         }
     }
 
@@ -110,5 +124,21 @@ public class CommentService {
         }).collect(Collectors.toList());
 
         return commentDTOS;
+    }
+
+    private void createNotify(Comment comment, Long receiver, String notifierName, String outerTitle, NotificationTypeEnum notificationType, Long outerId) {
+        if (receiver == comment.getCommentator()) {
+            return;
+        }
+        Notification notification = new Notification();
+        notification.setCreateTime(System.currentTimeMillis());
+        notification.setType(notificationType.getType());
+        notification.setOuterid(outerId);
+        notification.setNotifier(comment.getCommentator());
+        notification.setStatus(NotificationStatusEnum.UNREAD.getStatus());
+        notification.setReceiver(receiver);
+        notification.setNotifierName(notifierName);
+        notification.setOuterTitle(outerTitle);
+        notificationMapper.insert(notification);
     }
 }

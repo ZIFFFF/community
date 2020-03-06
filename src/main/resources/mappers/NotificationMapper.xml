@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzf.learn.community.mapper.NotificationMapper">
+
+
+    <select id="selectByUserId" resultType="com.zzf.learn.community.model.Notification">
+        select * from notification where receiver = #{userId}
+        order by status, create_time desc
+        limit #{offset}, #{size}
+    </select>
+
+    <select id="count" resultType="java.lang.Integer">
+        select count(1) from notification where receiver = #{userId}
+    </select>
+
+    <select id="unreadCount" resultType="java.lang.Long">
+        select count(1) from notification where receiver = #{userId} and status = 0
+    </select>
+
+</mapper>

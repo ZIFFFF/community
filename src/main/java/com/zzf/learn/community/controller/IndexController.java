@@ -1,6 +1,6 @@
 package com.zzf.learn.community.controller;
 
-import com.zzf.learn.community.dto.QuestionPageDTO;
+import com.zzf.learn.community.dto.PaginationDTO;
 import com.zzf.learn.community.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,7 +19,7 @@ public class IndexController {
     public String index(@RequestParam(name = "page", defaultValue = "1") Integer page,
                         @RequestParam(name = "size", defaultValue = "5") Integer size,
                         Model model){
-        QuestionPageDTO questionPage = questionService.list(page, size);
+        PaginationDTO questionPage = questionService.list(page, size);
         model.addAttribute("questionPage", questionPage);
         return "index";
     }
